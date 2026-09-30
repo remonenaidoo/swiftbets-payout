@@ -82,6 +82,21 @@ public sealed class SqlPayoutStore(ISqlConnectionFactory connections, IOutbox ou
         return json is null ? null : JsonSerializer.Deserialize<PayoutAttemptV1>(json, ContractJson.Options);
     }
 
+    public async Task<CouponPayoutView?> GetCouponPayoutAsync(Guid couponId, CancellationToken cancellationToken)
+    {
+        await using var connection = await connections.OpenAsync(cancellationToken);
+        using var reader = await connection.QueryMultipleAsync(new CommandDefinition(Sql.Get("Payout.CouponState"), new { CouponId = couponId }, cancellationToken: cancellationToken));
+        var row = await reader.ReadSingleOrDefaultAsync<(Guid CouponId, long PaidToDate, int LastVersion, bool IsLeased)?>();
+        if (row is not { } r)
+        {
+            return null;
+        }
+
+        var payments = (await reader.ReadAsync<PaymentView>()).ToList();
+        var reasons = (await reader.ReadAsync<string>()).ToList();
+        return new CouponPayoutView(r.CouponId, r.PaidToDate, r.LastVersion, r.IsLeased, payments, reasons);
+    }
+
     private EventEnvelope<T> Envelope<T>(T payload)
         where T : IEventContract =>
         EventEnvelope<T>.Create(payload, time.GetUtcNow(), CorrelationContext.CorrelationId ?? CorrelationContext.NewId());

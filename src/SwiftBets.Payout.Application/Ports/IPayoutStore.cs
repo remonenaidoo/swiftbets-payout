@@ -23,4 +23,6 @@ public interface IPayoutStore
     Task<IReadOnlyList<(PayoutAttemptV1 Attempt, string Reason, DateTimeOffset ParkedAt)>> ListDeadLettersAsync(int limit, CancellationToken cancellationToken);
 
     Task<PayoutAttemptV1?> TakeDeadLetterAsync(Guid couponId, int version);
+
+    Task<CouponPayoutView?> GetCouponPayoutAsync(Guid couponId, CancellationToken cancellationToken);
 }

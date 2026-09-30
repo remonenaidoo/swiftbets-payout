@@ -24,14 +24,20 @@ app.UseSwiftBetsWeb();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapSwiftBetsOperationalEndpoints();
+app.MapGet("/coupons/{couponId:guid}/payout", async (Guid couponId, IPayoutStore store, HttpContext context, CancellationToken cancellationToken) =>
+        await store.GetCouponPayoutAsync(couponId, cancellationToken) is { } view
+            ? Results.Json(view, ContractJson.Options)
+            : Error.NotFound("payout_not_found", "No payout has been attempted for that coupon.").ToHttpResult(context))
+    .RequireAuthorization(Roles.OperatorOrService);
+app.MapSwiftBetsFaultEndpoints();
 app.MapGet("/dead-letters", async (IPayoutStore store, CancellationToken cancellationToken) =>
         Results.Json((await store.ListDeadLettersAsync(100, cancellationToken)).Select(d => new { d.Attempt, d.Reason, d.ParkedAt }), ContractJson.Options))
-    .RequireAuthorization(Roles.Operator);
+    .RequireAuthorization(Roles.OperatorOrService);
 app.MapPost("/dead-letters/{couponId:guid}/{version:int}/replay", async (Guid couponId, int version, IPayoutStore store, IPayoutLadder ladder, HttpContext context) =>
         await store.TakeDeadLetterAsync(couponId, version) is { } attempt
             ? await ReplayAsync(ladder, attempt)
             : Error.NotFound("dead_letter_not_found", "No parked payout for that coupon and version.").ToHttpResult(context))
-    .RequireAuthorization(Roles.Operator);
+    .RequireAuthorization(Roles.OperatorOrService);
 
 await app.RunAsync();
 return 0;
