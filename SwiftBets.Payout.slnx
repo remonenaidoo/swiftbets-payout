@@ -7,7 +7,10 @@
     <Project Path="src/SwiftBets.Payout.Worker/SwiftBets.Payout.Worker.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/SwiftBets.Payout.Application.Tests/SwiftBets.Payout.Application.Tests.csproj" />
     <Project Path="tests/SwiftBets.Payout.ArchitectureTests/SwiftBets.Payout.ArchitectureTests.csproj" />
+    <Project Path="tests/SwiftBets.Payout.Domain.Tests/SwiftBets.Payout.Domain.Tests.csproj" />
+    <Project Path="tests/SwiftBets.Payout.Infrastructure.Tests/SwiftBets.Payout.Infrastructure.Tests.csproj" />
     <Project Path="tests/SwiftBets.Payout.Migrator.Tests/SwiftBets.Payout.Migrator.Tests.csproj" />
     <Project Path="tests/SwiftBets.Payout.Worker.Tests/SwiftBets.Payout.Worker.Tests.csproj" />
   </Folder>

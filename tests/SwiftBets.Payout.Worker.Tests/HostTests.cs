@@ -49,6 +49,11 @@ public sealed class HostTests : IClassFixture<HostTests.Factory>
         {
         builder.UseSetting("ConnectionStrings:SbPayout", "Server=127.0.0.1,1;Database=x;User Id=x;Password=x;TrustServerCertificate=True;Connect Timeout=1");
         builder.UseSetting("Kafka:BootstrapServers", "127.0.0.1:1");
+            builder.UseSetting("Jwt:Authority", "https://identity.test");
+            builder.UseSetting("Payout:RunConsumers", "false");
+            builder.UseSetting("Wallet:GrpcAddress", "http://127.0.0.1:1");
+            builder.UseSetting("ServiceIdentity:TokenEndpoint", "http://127.0.0.1:1/auth/token");
+            builder.UseSetting("ServiceIdentity:ClientSecret", "unused");
         }
     }
 }

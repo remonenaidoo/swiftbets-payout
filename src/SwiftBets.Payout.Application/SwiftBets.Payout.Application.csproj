@@ -4,6 +4,8 @@
   <ItemGroup>
     <PackageReference Include="SwiftBets.Contracts" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="SwiftBets.BuildingBlocks.Core" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <ProjectReference Include="../SwiftBets.Payout.Domain/SwiftBets.Payout.Domain.csproj" />
   </ItemGroup>
 </Project>
