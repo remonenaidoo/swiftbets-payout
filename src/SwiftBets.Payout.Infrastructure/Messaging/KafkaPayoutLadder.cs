@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using Prometheus;
 using SwiftBets.BuildingBlocks.Core;
 using SwiftBets.BuildingBlocks.Messaging;
 using SwiftBets.Contracts.Messaging;
@@ -12,6 +13,9 @@ public sealed class KafkaPayoutLadder(IEventPublisher publisher, IOptions<KafkaO
 {
     public static readonly string[] RungTopics = [Topics.PayoutRetry5Seconds, Topics.PayoutRetry1Minute, Topics.PayoutRetry15Minutes];
 
+    private static readonly Counter Scheduled = Metrics.CreateCounter(
+        "swiftbets_payout_retries_scheduled_total", "Payout attempts scheduled on a retry rung.", new CounterConfiguration { LabelNames = ["rung"] });
+
     public Task ScheduleAsync(PayoutAttemptV1 attempt, int rung, TimeSpan delay)
     {
         var envelope = EventEnvelope<PayoutAttemptV1>.Create(attempt, time.GetUtcNow(), CorrelationContext.CorrelationId ?? CorrelationContext.NewId());
@@ -19,6 +23,7 @@ public sealed class KafkaPayoutLadder(IEventPublisher publisher, IOptions<KafkaO
         headers[MessageHeaders.RetryDueAt] = DeferredDelivery.Format(time.GetUtcNow() + delay);
         headers[MessageHeaders.RetryStep] = attempt.Step.ToString();
         headers[MessageHeaders.RetryAttempt] = attempt.Attempt.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        Scheduled.WithLabels(RungTopics[rung]).Inc();
         return publisher.PublishRawAsync(
             new OutgoingMessage(TopicName.For(RungTopics[rung], kafka.Value.Environment).Value, attempt.CouponId.ToString(), EnvelopeSerializer.Serialize(envelope), headers),
             CancellationToken.None);
