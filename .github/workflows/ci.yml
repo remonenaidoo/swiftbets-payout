@@ -15,6 +15,6 @@ jobs:
     with:
       images: '[{"name": "swiftbets-payout", "dockerfile": "deploy/SwiftBets.Payout.Worker.Dockerfile"}, {"name": "swiftbets-payout-migrator", "dockerfile": "deploy/SwiftBets.Payout.Migrator.Dockerfile"}]'
     permissions:
-      contents: write
+      contents: read
       packages: write
       security-events: write
