@@ -35,7 +35,9 @@ public sealed partial class ProcessPayoutHandler(
         {
             CouponOutcome.Won => SettlementKind.Won,
             CouponOutcome.Void => SettlementKind.Void,
-            _ => SettlementKind.Lost,
+            CouponOutcome.CashedOut => SettlementKind.CashedOut,
+            CouponOutcome.Lost => SettlementKind.Lost,
+            _ => throw new InvalidOperationException($"Unknown coupon outcome {attempt.Outcome}; refusing to guess a payout."),
         };
         var holder = Guid.NewGuid().ToString("N");
         var state = await store.TryLeaseAsync(attempt.CouponId, attempt.PunterId, holder, Lease);

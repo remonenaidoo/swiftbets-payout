@@ -7,4 +7,5 @@ public enum PostingType
     VoidRefund,
     ResettleCredit,
     ResettleDebit,
+    Cashout,
 }
