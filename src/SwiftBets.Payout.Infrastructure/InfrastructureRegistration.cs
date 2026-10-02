@@ -50,7 +50,7 @@ public static class InfrastructureRegistration
 
         if (configuration.GetValue("Payout:RunConsumers", true))
         {
-            services.AddKafkaConsumer<CouponSettledV1, CouponSettledConsumer>(Topics.CouponSettled, "swiftbets.payout.settled");
+            services.AddKafkaConsumer<CouponSettledV2, CouponSettledConsumer>(Topics.CouponSettledV2, "swiftbets.payout.settled-v2");
             for (var rung = 0; rung < KafkaPayoutLadder.RungTopics.Length; rung++)
             {
                 AddLadderConsumer(services, KafkaPayoutLadder.RungTopics[rung]);

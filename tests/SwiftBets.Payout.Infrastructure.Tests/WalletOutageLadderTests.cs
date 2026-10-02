@@ -28,7 +28,7 @@ public sealed class WalletOutageLadderTests(SqlServerFixture sql, RedpandaFixtur
         var connectionString = await sql.CreateDatabaseAsync("payout_" + environment);
         var entry = typeof(Program).Assembly.EntryPoint!.Invoke(null, [new[] { $"--ConnectionStrings:SbPayout={connectionString}" }]);
         (entry is Task<int> task ? await task : (int)entry!).ShouldBe(0);
-        await redpanda.CreateTopicsAsync(3, [.. new[] { Topics.CouponSettled, Topics.PayoutRetry5Seconds, Topics.PayoutRetry1Minute, Topics.PayoutRetry15Minutes, Topics.PayoutCompleted, Topics.PayoutDeadLetter }
+        await redpanda.CreateTopicsAsync(3, [.. new[] { Topics.CouponSettledV2, Topics.PayoutRetry5Seconds, Topics.PayoutRetry1Minute, Topics.PayoutRetry15Minutes, Topics.PayoutCompleted, Topics.PayoutDeadLetter }
             .SelectMany(t => new[] { TopicName.For(t, environment).Value, TopicName.For(t, environment).DeadLetter().Value })]);
 
         var wallet = new OutageWallet { IsDown = true };
@@ -59,10 +59,10 @@ public sealed class WalletOutageLadderTests(SqlServerFixture sql, RedpandaFixtur
         await host.StartAsync(TestContext.Current.CancellationToken);
 
         var publisher = host.Services.GetRequiredService<IEventPublisher>();
-        var coupons = Enumerable.Range(1, 5).Select(i => new CouponSettledV1(Guid.NewGuid(), Guid.NewGuid(), 1, CouponOutcome.Won, new Money(1_000, "ZAR"), 2m + i, new Money(1_000 * (2 + i), "ZAR"), DateTimeOffset.UtcNow)).ToList();
+        var coupons = Enumerable.Range(1, 5).Select(i => new CouponSettledV2(Guid.NewGuid(), Guid.NewGuid(), 1, CouponOutcome.Won, new Money(1_000, "ZAR"), new Money(1_000 * (2 + i), "ZAR"), [], DateTimeOffset.UtcNow)).ToList();
         foreach (var coupon in coupons)
         {
-            await publisher.PublishAsync(Topics.CouponSettled, coupon.CouponId.ToString(), EventEnvelope<CouponSettledV1>.Create(coupon, DateTimeOffset.UtcNow, "outage-test"), TestContext.Current.CancellationToken);
+            await publisher.PublishAsync(Topics.CouponSettledV2, coupon.CouponId.ToString(), EventEnvelope<CouponSettledV2>.Create(coupon, DateTimeOffset.UtcNow, "outage-test"), TestContext.Current.CancellationToken);
         }
 
         await WaitUntilAsync(() => wallet.RefusedWhileDown >= coupons.Count);
