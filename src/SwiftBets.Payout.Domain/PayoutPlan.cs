@@ -13,6 +13,7 @@ public sealed record PayoutPlan(long Delta, PostingType Type, string Idempotency
         {
             0 => PostingType.None,
             < 0 => PostingType.ResettleDebit,
+            _ when kind == SettlementKind.CashedOut => PostingType.Cashout,
             _ when settlementVersion > 1 => PostingType.ResettleCredit,
             _ when kind == SettlementKind.Void => PostingType.VoidRefund,
             _ => PostingType.Win,
@@ -28,6 +29,7 @@ public sealed record PayoutPlan(long Delta, PostingType Type, string Idempotency
             PostingType.VoidRefund => "VOID_REFUND",
             PostingType.ResettleCredit => "RESETTLE_CREDIT",
             PostingType.ResettleDebit => "RESETTLE_DEBIT",
+            PostingType.Cashout => "CASHOUT",
             _ => "NONE",
         }}_{version}";
 }

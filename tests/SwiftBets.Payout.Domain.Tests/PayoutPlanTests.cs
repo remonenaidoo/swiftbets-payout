@@ -21,4 +21,22 @@ public sealed class PayoutPlanTests
         plan.Delta.ShouldBe(-3_000);
         plan.Type.ShouldBe(PostingType.ResettleDebit);
     }
+
+    [Fact]
+    public void A_cashout_credits_the_cashout_amount_under_its_own_key()
+    {
+        var plan = PayoutPlan.For(Coupon, 1, SettlementKind.CashedOut, targetPayout: 1_450, paidToDate: 0);
+
+        plan.Delta.ShouldBe(1_450);
+        plan.IdempotencyKey.ShouldBe("0199aaaa000070008000000000000001_bet1_CASHOUT_1");
+    }
+
+    [Fact]
+    public void A_cashout_already_paid_moves_nothing()
+    {
+        var plan = PayoutPlan.For(Coupon, 1, SettlementKind.CashedOut, targetPayout: 1_450, paidToDate: 1_450);
+
+        plan.Type.ShouldBe(PostingType.None);
+        plan.Delta.ShouldBe(0);
+    }
 }

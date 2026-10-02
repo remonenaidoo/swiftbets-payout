@@ -5,4 +5,5 @@ public enum SettlementKind
     Won,
     Lost,
     Void,
+    CashedOut,
 }
