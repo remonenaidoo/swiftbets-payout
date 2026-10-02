@@ -43,6 +43,15 @@ public sealed class HostTests : IClassFixture<HostTests.Factory>
         body.ShouldContain("process_cpu_seconds_total");
     }
 
+    [Fact]
+    public async Task The_integrity_digest_refuses_a_caller_without_the_service_role()
+    {
+        using var response = await _client.PostAsync(new Uri("/internal/integrity/payouts", UriKind.Relative),
+            new StringContent("{\"couponIds\":[]}", System.Text.Encoding.UTF8, "application/json"), TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
     public sealed class Factory : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)

@@ -82,6 +82,12 @@ public sealed class SqlPayoutStore(ISqlConnectionFactory connections, IOutbox ou
         return json is null ? null : JsonSerializer.Deserialize<PayoutAttemptV1>(json, ContractJson.Options);
     }
 
+    public async Task<IReadOnlyList<PaidTotal>> GetPaidTotalsAsync(IReadOnlyCollection<Guid> couponIds, CancellationToken cancellationToken)
+    {
+        await using var connection = await connections.OpenAsync(cancellationToken);
+        return [.. await connection.QueryAsync<PaidTotal>(new CommandDefinition(Sql.Get("Payout.IntegrityDigest"), new { Ids = couponIds }, cancellationToken: cancellationToken))];
+    }
+
     public async Task<CouponPayoutView?> GetCouponPayoutAsync(Guid couponId, CancellationToken cancellationToken)
     {
         await using var connection = await connections.OpenAsync(cancellationToken);

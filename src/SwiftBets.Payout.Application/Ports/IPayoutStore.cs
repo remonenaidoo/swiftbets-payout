@@ -25,4 +25,7 @@ public interface IPayoutStore
     Task<PayoutAttemptV1?> TakeDeadLetterAsync(Guid couponId, int version);
 
     Task<CouponPayoutView?> GetCouponPayoutAsync(Guid couponId, CancellationToken cancellationToken);
+
+    /// <summary>Paid totals for bet-history's integrity check; coupons never paid are absent.</summary>
+    Task<IReadOnlyList<PaidTotal>> GetPaidTotalsAsync(IReadOnlyCollection<Guid> couponIds, CancellationToken cancellationToken);
 }
