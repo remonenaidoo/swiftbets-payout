@@ -54,6 +54,29 @@ public sealed class ProcessPayoutHandlerTests
         ladder.Scheduled.ShouldBeEmpty();
     }
 
+    [Fact]
+    public async Task A_v2_settlement_pays_its_target()
+    {
+        var (handler, wallet, _, _) = Build();
+        var settled = new CouponSettledV2(Guid.NewGuid(), Guid.NewGuid(), 1, CouponOutcome.Won, new Money(1_000, "ZAR"), new Money(2_500, "ZAR"), [], DateTimeOffset.UtcNow);
+
+        (await handler.ExecuteAsync(ProcessPayoutHandler.FirstAttempt(settled, DateTimeOffset.UtcNow))).ShouldBe(PayoutOutcome.Paid);
+
+        wallet.Applied.Values.ShouldBe([2_500L]);
+    }
+
+    [Fact]
+    public async Task A_replayed_v2_settlement_of_a_paid_version_pays_nothing()
+    {
+        var (handler, wallet, _, _) = Build();
+        var settled = new CouponSettledV2(Guid.NewGuid(), Guid.NewGuid(), 1, CouponOutcome.Won, new Money(1_000, "ZAR"), new Money(2_500, "ZAR"), [], DateTimeOffset.UtcNow);
+        await handler.ExecuteAsync(ProcessPayoutHandler.FirstAttempt(settled, DateTimeOffset.UtcNow));
+
+        (await handler.ExecuteAsync(ProcessPayoutHandler.FirstAttempt(settled, DateTimeOffset.UtcNow))).ShouldBe(PayoutOutcome.AlreadyApplied);
+
+        wallet.Applied.Values.ShouldBe([2_500L]);
+    }
+
     private static PayoutAttemptV1 Attempt(long target) =>
         new(Guid.NewGuid(), Guid.NewGuid(), 1, CouponOutcome.Won, new Money(target, "ZAR"), PayoutStep.ComputeDelta, 0, null, DateTimeOffset.UtcNow);
 

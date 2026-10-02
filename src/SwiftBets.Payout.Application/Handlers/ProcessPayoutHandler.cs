@@ -26,7 +26,7 @@ public sealed partial class ProcessPayoutHandler(
     public const string FaultAfterCredit = "payout.after-credit";
     private static readonly TimeSpan Lease = TimeSpan.FromSeconds(30);
 
-    public static PayoutAttemptV1 FirstAttempt(CouponSettledV1 settled, DateTimeOffset now) =>
+    public static PayoutAttemptV1 FirstAttempt(CouponSettledV2 settled, DateTimeOffset now) =>
         new(settled.CouponId, settled.PunterId, settled.SettlementVersion, settled.Outcome, settled.TargetPayout, PayoutStep.ComputeDelta, 0, null, now);
 
     public async Task<PayoutOutcome> ExecuteAsync(PayoutAttemptV1 attempt)
