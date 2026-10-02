@@ -29,6 +29,11 @@ app.MapGet("/coupons/{couponId:guid}/payout", async (Guid couponId, IPayoutStore
             ? Results.Json(view, ContractJson.Options)
             : Error.NotFound("payout_not_found", "No payout has been attempted for that coupon.").ToHttpResult(context))
     .RequireAuthorization(Roles.OperatorOrService);
+app.MapPost("/internal/integrity/payouts", async (IntegrityRequest request, IPayoutStore store, HttpContext context, CancellationToken cancellationToken) =>
+        request.CouponIds is not { Count: > 0 and <= 500 }
+            ? Error.Validation("invalid_coupon_ids", "Ask for 1 to 500 coupon ids.").ToHttpResult(context)
+            : Results.Json(await store.GetPaidTotalsAsync(request.CouponIds, cancellationToken), ContractJson.Options))
+    .RequireAuthorization(Roles.Service);
 app.MapSwiftBetsFaultEndpoints();
 app.MapGet("/dead-letters", async (IPayoutStore store, CancellationToken cancellationToken) =>
         Results.Json((await store.ListDeadLettersAsync(100, cancellationToken)).Select(d => new { d.Attempt, d.Reason, d.ParkedAt }), ContractJson.Options))
@@ -49,3 +54,5 @@ static async Task<IResult> ReplayAsync(IPayoutLadder ladder, SwiftBets.Contracts
 }
 
 public partial class Program;
+
+internal sealed record IntegrityRequest(IReadOnlyList<Guid>? CouponIds);

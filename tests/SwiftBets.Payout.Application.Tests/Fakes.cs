@@ -91,6 +91,8 @@ internal sealed class FakeStore : IPayoutStore
     public Task<PayoutAttemptV1?> TakeDeadLetterAsync(Guid couponId, int version) => Task.FromResult<PayoutAttemptV1?>(null);
 
     public Task<CouponPayoutView?> GetCouponPayoutAsync(Guid couponId, CancellationToken cancellationToken) => Task.FromResult<CouponPayoutView?>(null);
+
+    public Task<IReadOnlyList<PaidTotal>> GetPaidTotalsAsync(IReadOnlyCollection<Guid> couponIds, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<PaidTotal>>([]);
 }
 
 internal sealed class CapturingLadder : IPayoutLadder
