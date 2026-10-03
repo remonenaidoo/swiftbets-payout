@@ -8,6 +8,7 @@ public static class ApplicationRegistration
     public static IServiceCollection AddPayoutApplication(this IServiceCollection services)
     {
         services.AddScoped<ProcessPayoutHandler>();
+        services.AddScoped<RedriveDeadLettersHandler>();
         return services;
     }
 }

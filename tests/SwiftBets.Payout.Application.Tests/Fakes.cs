@@ -86,9 +86,20 @@ internal sealed class FakeStore : IPayoutStore
     }
 
     public Task<IReadOnlyList<(PayoutAttemptV1 Attempt, string Reason, DateTimeOffset ParkedAt)>> ListDeadLettersAsync(int limit, CancellationToken cancellationToken) =>
-        Task.FromResult<IReadOnlyList<(PayoutAttemptV1, string, DateTimeOffset)>>([]);
+        Task.FromResult<IReadOnlyList<(PayoutAttemptV1, string, DateTimeOffset)>>([.. Parked.Take(limit).Select(p => (p.Attempt, p.Reason, DateTimeOffset.UnixEpoch))]);
 
-    public Task<PayoutAttemptV1?> TakeDeadLetterAsync(Guid couponId, int version) => Task.FromResult<PayoutAttemptV1?>(null);
+    public Task<PayoutAttemptV1?> TakeDeadLetterAsync(Guid couponId, int version)
+    {
+        var found = Parked.FindIndex(p => p.Attempt.CouponId == couponId && p.Attempt.SettlementVersion == version);
+        if (found < 0)
+        {
+            return Task.FromResult<PayoutAttemptV1?>(null);
+        }
+
+        var attempt = Parked[found].Attempt;
+        Parked.RemoveAt(found);
+        return Task.FromResult<PayoutAttemptV1?>(attempt);
+    }
 
     public Task<CouponPayoutView?> GetCouponPayoutAsync(Guid couponId, CancellationToken cancellationToken) => Task.FromResult<CouponPayoutView?>(null);
 

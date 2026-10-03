@@ -1,3 +1,4 @@
+using SwiftBets.Payout.Application.Handlers;
 using SwiftBets.BuildingBlocks.Observability;
 using SwiftBets.BuildingBlocks.Web;
 using SwiftBets.Contracts.Errors;
@@ -37,6 +38,9 @@ app.MapPost("/internal/integrity/payouts", async (IntegrityRequest request, IPay
 app.MapSwiftBetsFaultEndpoints();
 app.MapGet("/dead-letters", async (IPayoutStore store, CancellationToken cancellationToken) =>
         Results.Json((await store.ListDeadLettersAsync(100, cancellationToken)).Select(d => new { d.Attempt, d.Reason, d.ParkedAt }), ContractJson.Options))
+    .RequireAuthorization(Roles.OperatorOrService);
+app.MapPost("/dead-letters/redrive", async (int? limit, RedriveDeadLettersHandler handler, CancellationToken cancellationToken) =>
+        Results.Ok(new { redriven = await handler.HandleAsync(limit ?? 100, cancellationToken) }))
     .RequireAuthorization(Roles.OperatorOrService);
 app.MapPost("/dead-letters/{couponId:guid}/{version:int}/replay", async (Guid couponId, int version, IPayoutStore store, IPayoutLadder ladder, HttpContext context) =>
         await store.TakeDeadLetterAsync(couponId, version) is { } attempt
